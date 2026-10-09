@@ -62,13 +62,16 @@ embedded, the same file you produce locally.
 
 Better if you will run this more than once, or want a link you can share.
 
-Push the project to a GitHub repository, then in Colab:
+The project is on GitHub at
+<https://github.com/hellomoinul/diabetes-risk-prediction>. In Colab:
 
 ```python
-!git clone https://github.com/<your-user>/<your-repo>.git /content/project
+!git clone https://github.com/hellomoinul/diabetes-risk-prediction.git /content/ML_lab_project
 ```
 
-then open `/content/project/notebooks/Diabetes Risk Prediction.ipynb` from the file panel.
+then open `/content/ML_lab_project/notebooks/Diabetes Risk Prediction.ipynb` from the file panel.
+Because cloning lands everything in `/content/ML_lab_project`, Route A's unzip cell can be skipped
+(the setup cell finds `src/` automatically).
 
 ---
 

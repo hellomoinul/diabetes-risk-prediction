@@ -345,13 +345,21 @@ the §7 table in the brief's required format.
 
 ### Google Colab
 
-Upload `ML_lab_colab.zip` (generated in the project root), unzip it, and open the notebook from
-the Colab file panel. Full steps in [`COLAB.md`](COLAB.md).
+**Recommended (GitHub):** clone the public repo and run — no uploads, always the latest code.
+
+```python
+!git clone https://github.com/hellomoinul/diabetes-risk-prediction.git /content/ML_lab_project
+```
+
+Then open `/content/ML_lab_project/notebooks/Diabetes Risk Prediction.ipynb` from the Colab file
+panel and **Run all**, or run `!cd /content/ML_lab_project && python run_pipeline.py`.
+
+**Alternative (zip upload):** upload `ML_lab_colab.zip`, unzip it, and open the notebook:
 
 ```python
 !unzip -q ML_lab_colab.zip -d /content
 ```
 
-No Kaggle credentials are required, because the archive includes
-`data/diabetes_prediction_dataset.csv` and `fetch()` only contacts the Kaggle API when that file
-is absent.
+Full steps in [`COLAB.md`](COLAB.md). No Kaggle credentials are required, because the repo/archive
+includes `data/diabetes_prediction_dataset.csv` and `fetch()` only contacts the Kaggle API when
+that file is absent.
