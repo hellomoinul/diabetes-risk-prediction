@@ -1,11 +1,12 @@
 # Running this project on Google Colab
 
-Two routes. **Route A (upload)** is the quickest. **Route B (GitHub)** is better if you need to
-re-run it repeatedly or share the link.
+Three routes. **Route A (upload)** is the quickest. **Route B (GitHub)** is better if you need to
+re-run it repeatedly or share the link. **Route C (exam)** covers handing in a *different* dataset,
+given as a CSV **or** a Kaggle link.
 
-Both were tested by extracting the archive to a clean directory and running the pipeline there —
-it completed with byte-identical results (XGBoost AUC 0.9799, 16 figures, 12 result files) and
-without needing Kaggle credentials.
+Both A and B were tested by extracting the archive to a clean directory and running the pipeline
+there — it completed with byte-identical results (XGBoost AUC 0.9799, 16 figures, 12 result files)
+and without needing Kaggle credentials.
 
 ---
 
@@ -73,6 +74,62 @@ then open `/content/ML_lab_project/notebooks/Diabetes Risk Prediction.ipynb` fro
 Because cloning lands everything in `/content/ML_lab_project`, Route A's unzip cell can be skipped
 (the setup cell finds `src/` automatically).
 
+**One-click open (browser bookmark):** the notebook carries a bootstrap cell that clones the repo
+itself when `src/` is missing, so this link *just works* with no manual preparation:
+<https://colab.research.google.com/github/hellomoinul/diabetes-risk-prediction/blob/main/notebooks/Diabetes%20Risk%20Prediction.ipynb>
+
+---
+
+## Route C — exam: any dataset, CSV or Kaggle link
+
+When the teacher hands over a **new dataset**, `run_on_new_data.py` decides the workflow for you:
+
+- the columns are the **same 8 diabetes features** → score the rows with the saved model
+  (`predict.py`, no retraining);
+- **different columns** (still binary classification) → retrain the same 4-model workflow
+  (`run_generic_pipeline.py`).
+
+### 1. Data arrives as a CSV
+
+Upload it to `/content` with the file panel, then:
+
+```python
+!git clone https://github.com/hellomoinul/diabetes-risk-prediction.git /content/ML_lab_project
+%cd /content/ML_lab_project
+!python run_on_new_data.py --csv /content/exam.csv
+```
+
+### 2. Data arrives as a Kaggle link
+
+Authenticate once (upload `kaggle.json` from kaggle.com/settings):
+
+```python
+!pip install -q kaggle
+from google.colab import files; files.upload()
+!mkdir -p ~/.kaggle && mv kaggle.json ~/.kaggle/ && chmod 600 ~/.kaggle/kaggle.json
+```
+
+Then download and run in one command:
+
+```python
+!git clone https://github.com/hellomoinul/diabetes-risk-prediction.git /content/ML_lab_project
+%cd /content/ML_lab_project
+!python run_on_new_data.py --kaggle "https://www.kaggle.com/datasets/<owner>/<slug>"
+```
+
+### 3. Optional flags
+
+```python
+!python run_on_new_data.py --csv /content/exam.csv --target churn        # label column name
+!python run_on_new_data.py --csv /content/exam.csv --positive-label 1   # which class is positive
+!python run_on_new_data.py --csv /content/exam.csv --mode retrain        # force retrain
+!python run_on_new_data.py --csv /content/exam.csv --outdir results_exam # where outputs go
+```
+
+Outputs land in `results_new/` (or `--outdir`): for the same-schema case a `predictions.csv` plus
+metrics; for the different-schema case the full result table, figures, tuned models and a
+`summary.json`. `run_on_new_data.json` beside them records which path ran and why.
+
 ---
 
 ## Things worth knowing
@@ -92,6 +149,10 @@ Colab's Python build. The setup cell prints the versions it found either way.
 **Paths are location-independent.** Every path in `src/` is derived from `__file__`, not the
 working directory, so the project works from any location. The notebook's setup cell searches both
 the working directory *and* `/content`, which is why it needs no editing for Colab.
+
+**Opening the notebook directly from GitHub works too.** A bootstrap cell at the top of the
+notebook clones the repo into `/content/ML_lab_project` on its own whenever it cannot find `src/`,
+so Route B's one-click link needs no manual preparation.
 
 **Runtime is ~3 minutes** (181 s measured for the pipeline, ~2.5 min for the notebook). Colab's
 free tier allows far more.

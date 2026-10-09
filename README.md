@@ -305,14 +305,45 @@ If the target column is not the last column, pass `--target NAME`.
 
 ---
 
+## 11. Exam: any dataset, CSV or Kaggle link
+
+`run_on_new_data.py` ties §9 and §10 together. Give it the new dataset, whether it arrives as a
+CSV **or** a Kaggle URL/`owner\\slug`, and it decides the workflow automatically:
+
+```bash
+python run_on_new_data.py --csv exam.csv
+python run_on_new_data.py --kaggle "https://www.kaggle.com/datasets/owner/slug"
+python run_on_new_data.py --csv exam.csv --target churn --mode auto
+python run_on_new_data.py --csv exam.csv --mode retrain --outdir results_exam
+```
+
+The decision, in one sentence:
+
+- the CSV's columns contain **all 8 diabetes features and nothing else** → it is the same schema,
+  so rows are scored with the saved model (`predict.py`, no retraining);
+- otherwise (missing or extra feature columns) → it is a **different dataset**, so the same
+  4-model workflow is retrained (`run_generic_pipeline.py`).
+
+`--mode auto|predict|retrain` overrides the automatic choice. `--csv` and `--kaggle` are
+mutually exclusive. With `--kaggle`, the dataset is downloaded to `<outdir>/data/` first (the
+largest CSV in the archive is used). Everything lands in `--outdir` (default `results_new/`),
+together with `run_on_new_data.json` recording which path was taken and why.
+
+Kaggle downloads use the same credentials as `src/fetch_data.py` (`~/.kaggle/kaggle.json` or
+`KAGGLE_USERNAME` / `KAGGLE_KEY`); missing credentials produce a ready-to-paste Colab hint.
+
+---
+
 ## Repository layout
 
 ```
 run_pipeline.py                     # end-to-end reproduction of every number and figure
 run_generic_pipeline.py             # same 4-model workflow on ANY binary-classification CSV
+run_on_new_data.py                  # one command: CSV or Kaggle -> predict or retrain, auto
 predict.py                          # score a new CSV with a saved model
 src/
   fetch_data.py                     # official Kaggle API download + strict validation
+  kaggle.py                         # download ANY Kaggle dataset (URL or owner/slug)
   data.py                           # cleaning, reports, split, ColumnTransformer
   models.py                         # 4 models, CV tuning, overfitting checks, importance
   evaluation.py                     # baseline, metrics, confusion matrices, result table
@@ -353,6 +384,13 @@ the §7 table in the brief's required format.
 
 Then open `/content/ML_lab_project/notebooks/Diabetes Risk Prediction.ipynb` from the Colab file
 panel and **Run all**, or run `!cd /content/ML_lab_project && python run_pipeline.py`.
+
+For an **exam dataset** (CSV or Kaggle link) the same clone works:
+
+```python
+!cd /content/ML_lab_project && python run_on_new_data.py --csv /content/exam.csv
+!cd /content/ML_lab_project && python run_on_new_data.py --kaggle "https://www.kaggle.com/datasets/owner/slug"
+```
 
 **Alternative (zip upload):** upload `ML_lab_colab.zip`, unzip it, and open the notebook:
 
