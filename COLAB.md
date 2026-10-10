@@ -153,6 +153,41 @@ metrics; for the different-schema case the full result table, figures, tuned mod
 
 ---
 
+## Route D — Drive folder (notebook lives in Drive)
+
+Mirrors the classic lab setup: the notebook itself lives in a Drive folder, Colab opens
+it from there, and run outputs are copied back to Drive (a Drive-opened notebook
+auto-saves there — unlike `/content`, which is wiped when the runtime dies).
+
+### 1. Create the folder (browser, once)
+
+At [drive.google.com](https://drive.google.com), create `ML_Lab/` with an `outputs/`
+subfolder. Upload `notebooks/Diabetes Risk Prediction.ipynb` from the repo into `ML_Lab/`.
+
+### 2. Open it in Colab
+
+Double-click the notebook in Drive → **Open with → Google Colaboratory** (or Colab's
+**File → Open notebook → Google Drive** tab). The bootstrap cell clones the repo for
+`src/`, so the notebook needs network but nothing else uploaded.
+
+### 3. Add the Secret (once)
+
+Same as every route: the `KAGGLE_API_TOKEN` Secret from step 0, with notebook access
+on — the dataset downloads on first run.
+
+### 4. Run it
+
+**Runtime → Run all.** The Drive setup cell mounts Drive (one auth click) and points
+outputs at `ML_Lab/outputs/`; section 7 prints the same table as the sanity check below.
+
+### 5. Exam day
+
+The appendix cell at the end of the notebook uploads the teacher's CSV
+(`files.upload()`), scores it with the saved XGBoost model, and copies the predictions
+to `ML_Lab/outputs/`.
+
+---
+
 ## Things worth knowing
 
 **The dataset downloads on first run.** Nothing is bundled: `fetch()` pulls

@@ -418,6 +418,9 @@ For an **exam dataset** (CSV or Kaggle link) the same clone works:
 !unzip -q ML_lab_colab.zip -d /content
 ```
 
+**Drive folder:** keep the notebook in `ML_Lab/` on Google Drive and open it from there —
+Route D in [`COLAB.md`](COLAB.md).
+
 Full steps in [`COLAB.md`](COLAB.md). The dataset is not bundled: `fetch()` downloads it
 from the Kaggle API with your `KAGGLE_API_TOKEN` (Colab Secret on Colab), validates it,
 and caches `data/` — off Colab an existing `data/*.csv` is reused instead.
