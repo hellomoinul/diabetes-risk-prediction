@@ -1,3 +1,16 @@
+> **SUPERSEDED — do not treat as describing the delivered project.**
+>
+> This is the *original* proposal, written before the project was built. It describes a
+> **different dataset (Pima Indians Diabetes)** and a much wider scope (regression, FLD,
+> generative models, KDE, Bayesian models, k-means, GMM/EM, HMMs) that the delivered
+> project does **not** implement.
+>
+> The plan of record is [`project_plan.md`](project_plan.md). The delivered project is
+> classification only — four models (Logistic Regression, Decision Tree, SVM, XGBoost) —
+> on the 100k-row Kaggle diabetes dataset. This file is kept for history only.
+>
+> ---
+
 # Introduction to Machine Learning Lab — Project Proposal
 
 **Course:** Introduction to Machine Learning Lab

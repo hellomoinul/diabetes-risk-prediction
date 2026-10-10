@@ -4,6 +4,8 @@
 **Dataset:** [Diabetes prediction dataset](https://www.kaggle.com/datasets/iammustafatz/diabetes-prediction-dataset)
 (Kaggle, uploaded by Mohammed Mustafa), fetched programmatically with the official Kaggle API.
 **Notebook:** [`notebooks/Diabetes Risk Prediction.ipynb`](notebooks/Diabetes%20Risk%20Prediction.ipynb)
+**New (surprise) dataset?** Start at [`PREDICT.md`](PREDICT.md) — one command scores it
+with the trained model. [`COLAB.md`](COLAB.md) covers Google Colab.
 
 ---
 
@@ -253,20 +255,25 @@ A tree's zero means "not used for splitting", not "no association".
 
 ## 9. Reusing the trained model on a new dataset
 
-`run_pipeline.py` persists every tuned pipeline (preprocessing + classifier) to `models/`. Given a
-new CSV that has the same feature columns, score it without retraining:
+The tuned pipelines (preprocessing + classifier) ship in `models/` as `*.joblib`, so scoring
+works immediately — no retrain first. Given a new CSV with the same feature columns, score it
+without retraining:
 
 ```bash
 python predict.py newdata.csv                     # XGBoost, the best-AUC model
 python predict.py newdata.csv --model decision_tree
 python predict.py newdata.csv --out scored.csv
+python predict.py exam.csv --map glucose:blood_glucose_level   # renamed column
 ```
 
-The output copies the input rows and adds `prediction` (0/1) and `probability` (or
-`decision_score` for SVM). If the CSV still carries the `diabetes` column, the metrics are printed
-too. Unknown categories in `gender` / `smoking_history` are ignored by the encoder rather than
-crashing, and a missing feature column fails with a clear message. Run `python run_pipeline.py`
-once first to create `models/`.
+Before scoring, the script prints the expected vs. found columns, applies anything given with
+`--map ORIGINAL:NEW` (repeatable), ignores extra columns, and fails with the exact missing list
+otherwise — including the retrain command to run instead. The output copies the input rows and
+adds `prediction` (0/1) and `probability` (or `decision_score` for SVM). If the CSV still carries
+the `diabetes` column, the metrics are printed too. Unknown categories in `gender` /
+`smoking_history` are ignored by the encoder rather than crashing. If `models/` is ever empty,
+run `python run_pipeline.py` once (~3 min) to rebuild it. Full exam runbook:
+[`PREDICT.md`](PREDICT.md). Self-test: `python selftest_predict.py` (~30 s).
 
 ---
 
@@ -340,7 +347,10 @@ Kaggle downloads use the same credentials as `src/fetch_data.py` (`~/.kaggle/kag
 run_pipeline.py                     # end-to-end reproduction of every number and figure
 run_generic_pipeline.py             # same 4-model workflow on ANY binary-classification CSV
 run_on_new_data.py                  # one command: CSV or Kaggle -> predict or retrain, auto
-predict.py                          # score a new CSV with a saved model
+predict.py                          # score a new CSV with a saved model (--map for renamed columns)
+selftest_predict.py                 # ~30 s check: models load, score, --map identical
+PREDICT.md                          # exam runbook: the one command and what to do when columns differ
+COLAB.md                            # Google Colab steps (clone or zip upload)
 src/
   fetch_data.py                     # official Kaggle API download + strict validation
   kaggle.py                         # download ANY Kaggle dataset (URL or owner/slug)
@@ -353,8 +363,9 @@ notebooks/
 data/                               # diabetes_prediction_dataset.csv
 figures/                            # 16 PNG figures
 results/                            # 12 result files, incl. final_result_table.csv
-models/                             # tuned pipelines (*.joblib) saved by run_pipeline.py
-Plan/                               # the approved project plan
+models/                             # tuned pipelines (*.joblib) — TRACKED, ships with the project
+Plan/                               # project_plan.md (record), implementation_report.md,
+                                    # preparation.md, original_proposal_superseded.md (history only)
 ```
 
 ## Reproducing
@@ -362,6 +373,7 @@ Plan/                               # the approved project plan
 ```bash
 pip install -r requirements.txt
 python run_pipeline.py              # ~2-3 minutes
+python selftest_predict.py          # ~30 seconds, proves predict.py works
 ```
 
 Runtime ~132 s. `random_state = 42` for splitting, cross-validation and every model. Executing

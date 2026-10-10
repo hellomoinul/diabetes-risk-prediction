@@ -1,0 +1,66 @@
+{
+  "Logistic Regression": {
+    "slug": "logistic_regression",
+    "file": "models/logistic_regression.joblib",
+    "best_cv_auc": 0.9626,
+    "features": [
+      "age",
+      "hypertension",
+      "heart_disease",
+      "bmi",
+      "HbA1c_level",
+      "blood_glucose_level",
+      "gender",
+      "smoking_history"
+    ],
+    "target": "diabetes"
+  },
+  "Decision Tree": {
+    "slug": "decision_tree",
+    "file": "models/decision_tree.joblib",
+    "best_cv_auc": 0.974,
+    "features": [
+      "age",
+      "hypertension",
+      "heart_disease",
+      "bmi",
+      "HbA1c_level",
+      "blood_glucose_level",
+      "gender",
+      "smoking_history"
+    ],
+    "target": "diabetes"
+  },
+  "SVM": {
+    "slug": "svm",
+    "file": "models/svm.joblib",
+    "best_cv_auc": 0.9609,
+    "features": [
+      "age",
+      "hypertension",
+      "heart_disease",
+      "bmi",
+      "HbA1c_level",
+      "blood_glucose_level",
+      "gender",
+      "smoking_history"
+    ],
+    "target": "diabetes"
+  },
+  "XGBoost": {
+    "slug": "xgboost",
+    "file": "models/xgboost.joblib",
+    "best_cv_auc": 0.9796,
+    "features": [
+      "age",
+      "hypertension",
+      "heart_disease",
+      "bmi",
+      "HbA1c_level",
+      "blood_glucose_level",
+      "gender",
+      "smoking_history"
+    ],
+    "target": "diabetes"
+  }
+}

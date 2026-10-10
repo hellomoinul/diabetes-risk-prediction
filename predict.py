@@ -8,6 +8,13 @@ pre-encoded ones). Any of the trained models can be used::
     python predict.py newdata.csv --model decision_tree
     python predict.py newdata.csv --out scored.csv
     python predict.py exam.csv --models-dir results_exam/models
+    python predict.py exam.csv --map glucose:blood_glucose_level  # renamed column
+
+If the CSV's columns don't match the trained model even after --map, scoring is
+impossible and the script tells you to retrain instead
+(``python run_on_new_data.py --csv exam.csv --mode retrain``): the model's learned
+weights are tied to its exact input features, so a genuinely different dataset
+needs a new model, not the old one.
 
 The feature columns are read from the model itself, so this works for both the
 diabetes models in ``models/`` and the ones written by
@@ -108,6 +115,12 @@ def main(argv: list[str] | None = None) -> int:
              f"(default: '{TARGET}' if present)",
     )
     parser.add_argument(
+        "--map", action="append", default=[], metavar="ORIGINAL:NEW",
+        help="rename an incoming column before the schema check, e.g. "
+             "--map glucose:blood_glucose_level. Repeat for multiple columns. "
+             "Use this when the new CSV means the same thing under a different name.",
+    )
+    parser.add_argument(
         "--out", type=Path, default=None,
         help="where to write predictions (default: <input>_predictions.csv)",
     )
@@ -121,12 +134,41 @@ def main(argv: list[str] | None = None) -> int:
     pipeline = joblib.load(model_path)
 
     df = pd.read_csv(args.input)
+
+    renames: dict[str, str] = {}
+    for spec in args.map:
+        if ":" not in spec:
+            raise SystemExit(
+                f"Bad --map {spec!r}: use ORIGINAL:NEW, e.g. "
+                "--map glucose:blood_glucose_level"
+            )
+        original, new = (part.strip() for part in spec.split(":", 1))
+        if original not in df.columns:
+            raise SystemExit(
+                f"--map {spec!r}: column {original!r} is not in {args.input}\n"
+                f"Available columns: {list(df.columns)}"
+            )
+        renames[original] = new
+    if renames:
+        print(f"Renamed columns: {renames}")
+        df = df.rename(columns=renames)
+
     required = list(getattr(pipeline, "feature_names_in_", FEATURES))
+    target_name = args.target or (TARGET if TARGET in df.columns else None)
+    extra = [c for c in df.columns if c not in required and c != target_name]
     missing = [c for c in required if c not in df.columns]
+    print(f"Expected features ({len(required)}): {required}")
+    print(f"Found columns     ({len(df.columns)}): {list(df.columns)}")
+    if extra:
+        print(f"Ignored extra columns (not used for scoring): {extra}")
     if missing:
         raise SystemExit(
             f"{args.input} is missing required columns: {missing}\n"
-            f"Expected feature columns: {required}"
+            f"Expected feature columns: {required}\n"
+            f"Hint: if your CSV means the same thing under a different name, map it, e.g.\n"
+            f"  python predict.py {args.input} --map glucose:blood_glucose_level\n"
+            f"If the dataset is genuinely different, retrain instead:\n"
+            f"  python run_on_new_data.py --csv {args.input} --mode retrain"
         )
 
     print(f"Model : {model_path.name}")
@@ -148,7 +190,7 @@ def main(argv: list[str] | None = None) -> int:
           f"({100 * flagged / len(df):.2f}%)")
     print(f"Written: {out_path}")
 
-    target = args.target or (TARGET if TARGET in df.columns else None)
+    target = target_name
     if target and target in df.columns:
         labels = _as_labels(df[target])
         if labels is not None:

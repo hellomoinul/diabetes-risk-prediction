@@ -14,9 +14,11 @@ and without needing Kaggle credentials.
 
 ### 1. Get the archive
 
-`ML_lab_colab.zip` is already in the project root (2.5 MB). It contains `src/`, `data/`, the
-notebook, the pipeline entry point, and the docs. It deliberately excludes `figures/` and
-`results/`, because the run regenerates both.
+`ML_lab_colab.zip` is already in the project root (2.6 MB, 28 files). It contains `src/`,
+`data/`, the notebook, `models/` (the four trained pipelines, so scoring works instantly),
+the exam scripts (`predict.py`, `run_on_new_data.py`, `run_generic_pipeline.py`,
+`selftest_predict.py`), and the docs (`README.md`, `COLAB.md`, `PREDICT.md`, `Plan/`).
+It deliberately excludes `figures/` and `results/`, because the run regenerates both.
 
 ### 2. Open Colab and upload it
 
@@ -88,6 +90,11 @@ When the teacher hands over a **new dataset**, `run_on_new_data.py` decides the 
   (`predict.py`, no retraining);
 - **different columns** (still binary classification) → retrain the same 4-model workflow
   (`run_generic_pipeline.py`).
+
+Same meaning under a different column name (e.g. `glucose` for `blood_glucose_level`)? Map it
+instead of retraining: `python predict.py exam.csv --map glucose:blood_glucose_level`. Full exam
+runbook: [`PREDICT.md`](PREDICT.md). The archive already ships `models/`, so predict-mode needs
+no rebuild first; verify with `python selftest_predict.py` (~30 s).
 
 ### 1. Data arrives as a CSV
 
