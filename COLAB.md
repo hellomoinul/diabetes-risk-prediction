@@ -5,8 +5,17 @@ re-run it repeatedly or share the link. **Route C (exam)** covers handing in a *
 given as a CSV **or** a Kaggle link.
 
 Both A and B were tested by extracting the archive to a clean directory and running the pipeline
-there — it completed with byte-identical results (XGBoost AUC 0.9799, 16 figures, 12 result files)
-and without needing Kaggle credentials.
+there — it completed with byte-identical results (XGBoost AUC 0.9799, 16 figures, 12 result files),
+downloading the dataset once via the Kaggle API token.
+
+---
+
+### 0. One-time: the Kaggle API token
+
+The dataset is not bundled — it downloads from Kaggle on first run. Add your token once:
+in Colab, open **Secrets** (key icon, left sidebar), add `KAGGLE_API_TOKEN` = your `KGAT_...`
+token (Kaggle → avatar → Settings → API → Create New Token), with notebook access on.
+Locally, `export KAGGLE_API_TOKEN=...` or save it to `~/.kaggle/access_token` instead.
 
 ---
 
@@ -14,11 +23,12 @@ and without needing Kaggle credentials.
 
 ### 1. Get the archive
 
-`ML_lab_colab.zip` is already in the project root (2.6 MB, 28 files). It contains `src/`,
-`data/`, the notebook, `models/` (the four trained pipelines, so scoring works instantly),
-the exam scripts (`predict.py`, `run_on_new_data.py`, `run_generic_pipeline.py`,
-`selftest_predict.py`), and the docs (`README.md`, `COLAB.md`, `PREDICT.md`, `Plan/`).
-It deliberately excludes `figures/` and `results/`, because the run regenerates both.
+`ML_lab_colab.zip` is already in the project root (2.0 MB, 29 files). It contains `src/`
+(incl. the Kaggle-token helper), the notebook, `models/` (the four trained pipelines,
+so scoring works instantly), the exam scripts (`predict.py`, `run_on_new_data.py`,
+`run_generic_pipeline.py`, `selftest_predict.py`), and the docs (`README.md`,
+`COLAB.md`, `PREDICT.md`, `Plan/`). It deliberately excludes `figures/`, `results/`,
+and the dataset CSV — the run regenerates the first two and downloads the third.
 
 **No upload needed:** the same bundle is attached to the GitHub release — pull it in one
 cell and skip step 2 entirely:
@@ -118,15 +128,9 @@ Upload it to `/content` with the file panel, then:
 
 ### 2. Data arrives as a Kaggle link
 
-Authenticate once (upload `kaggle.json` from kaggle.com/settings):
-
-```python
-!pip install -q kaggle
-from google.colab import files; files.upload()
-!mkdir -p ~/.kaggle && mv kaggle.json ~/.kaggle/ && chmod 600 ~/.kaggle/kaggle.json
-```
-
-Then download and run in one command:
+No extra auth — the `KAGGLE_API_TOKEN` Secret from step 0 covers this too
+(`!pip install -q kaggle` first if the package is missing). Then download and
+run in one command:
 
 ```python
 !git clone https://github.com/hellomoinul/diabetes-risk-prediction.git /content/ML_lab_project
@@ -151,11 +155,11 @@ metrics; for the different-schema case the full result table, figures, tuned mod
 
 ## Things worth knowing
 
-**No Kaggle credentials needed.** `fetch()` only calls the Kaggle API when
-`data/diabetes_prediction_dataset.csv` is missing. The archive already contains that file, so the
-data step re-reads and re-validates it locally and never touches the network. If you *do* upload
-without the data file, you get a clear message telling you exactly what to do rather than an
-opaque auth error.
+**The dataset downloads on first run.** Nothing is bundled: `fetch()` pulls
+`data/diabetes_prediction_dataset.csv` from the Kaggle API with your
+`KAGGLE_API_TOKEN`, validates it (100,000 rows, exact schema), and caches it.
+Off Colab an existing `data/*.csv` is reused instead. A missing token fails with
+the exact Secret/env-var fix, not an opaque auth error.
 
 **Dependencies are handled automatically.** The second code cell installs only what is missing, so
 it is a silent no-op if Colab's preinstalled stack already covers it. To pin exact versions
@@ -184,7 +188,7 @@ split fine on CPU.
 | Symptom | Cause | Fix |
 |---|---|---|
 | `No folder containing 'src/' was found` | The archive has not been unzipped, or you opened the notebook before step 3 | Run the unzip cell, then re-run the setup cell |
-| `FileNotFoundError: ... diabetes_prediction_dataset.csv is missing and no Kaggle credentials` | You uploaded the notebook without the data file | Re-upload `ML_lab_colab.zip` (it contains `data/`) |
+| `RuntimeError: ... no KAGGLE_API_TOKEN was found` | The Colab Secret is missing (or notebook access is off) | Add `KAGGLE_API_TOKEN` in Secrets (step 0) and re-run |
 | A `pip install` cell appears to do nothing | Correct behaviour | Colab already provides these packages; the cell only installs what is absent |
 | Joblib `resource_tracker KeyError` tracebacks | Cosmetic Windows/joblib shutdown noise | Ignore — the run still completes and writes its output |
 | Results differ from the documented values | Almost impossible — `random_state = 42` everywhere | Check you ran all cells, and that you started from the unmodified archive |

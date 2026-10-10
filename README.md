@@ -336,8 +336,8 @@ mutually exclusive. With `--kaggle`, the dataset is downloaded to `<outdir>/data
 largest CSV in the archive is used). Everything lands in `--outdir` (default `results_new/`),
 together with `run_on_new_data.json` recording which path was taken and why.
 
-Kaggle downloads use the same credentials as `src/fetch_data.py` (`~/.kaggle/kaggle.json` or
-`KAGGLE_USERNAME` / `KAGGLE_KEY`); missing credentials produce a ready-to-paste Colab hint.
+Kaggle downloads authenticate with `KAGGLE_API_TOKEN` (Colab Secret on Colab, env var or
+`~/.kaggle/access_token` locally); a missing token produces a ready-to-paste hint.
 
 ---
 
@@ -354,13 +354,14 @@ COLAB.md                            # Google Colab steps (clone or zip upload)
 src/
   fetch_data.py                     # official Kaggle API download + strict validation
   kaggle.py                         # download ANY Kaggle dataset (URL or owner/slug)
+  kaggle_auth.py                    # KAGGLE_API_TOKEN from Colab Secrets / env
   data.py                           # cleaning, reports, split, ColumnTransformer
   models.py                         # 4 models, CV tuning, overfitting checks, importance
   evaluation.py                     # baseline, metrics, confusion matrices, result table
   plots.py                          # all 16 figures
 notebooks/
   Diabetes Risk Prediction.ipynb    # the report (executed, outputs embedded)
-data/                               # diabetes_prediction_dataset.csv
+data/                               # downloaded from Kaggle on first run, never shipped
 figures/                            # 16 PNG figures
 results/                            # 12 result files, incl. final_result_table.csv
 models/                             # tuned pipelines (*.joblib) — TRACKED, ships with the project
@@ -417,6 +418,6 @@ For an **exam dataset** (CSV or Kaggle link) the same clone works:
 !unzip -q ML_lab_colab.zip -d /content
 ```
 
-Full steps in [`COLAB.md`](COLAB.md). No Kaggle credentials are required, because the repo/archive
-includes `data/diabetes_prediction_dataset.csv` and `fetch()` only contacts the Kaggle API when
-that file is absent.
+Full steps in [`COLAB.md`](COLAB.md). The dataset is not bundled: `fetch()` downloads it
+from the Kaggle API with your `KAGGLE_API_TOKEN` (Colab Secret on Colab), validates it,
+and caches `data/` — off Colab an existing `data/*.csv` is reused instead.

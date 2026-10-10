@@ -3,10 +3,11 @@
 Source: https://www.kaggle.com/datasets/iammustafatz/diabetes-prediction-dataset
 Owner: Mohammed Mustafa. Distributed by Kaggle.
 
-The download uses the official Kaggle API, authenticated from the credentials
-in ``~/.kaggle/``. Whatever comes back is validated before it is accepted, so a
-truncated or unexpected file fails loudly instead of silently poisoning the
-pipeline.
+The download uses the official Kaggle API with the ``KAGGLE_API_TOKEN``
+(KGAT_...). On Google Colab the token is read from Colab Secrets; locally it
+comes from the environment or ``~/.kaggle/access_token``. Whatever comes back
+is validated before it is accepted, so a truncated or unexpected file fails
+loudly instead of silently poisoning the pipeline.
 
 Run directly::
 
@@ -16,11 +17,12 @@ Run directly::
 
 from __future__ import annotations
 
-import os
 import sys
 from pathlib import Path
 
 import pandas as pd
+
+from .kaggle_auth import ensure_kaggle_credentials, has_token, on_colab
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
@@ -103,15 +105,19 @@ def _read(path: Path) -> pd.DataFrame:
 
 
 def fetch(force: bool = False) -> pd.DataFrame:
-    """Return the dataset, downloading it only if it is not already on disk.
+    """Return the dataset, downloading it from Kaggle when needed.
 
-    The local file is preferred, so a machine (or a Colab runtime) that already
-    has ``data/diabetes_prediction_dataset.csv`` never needs Kaggle credentials
-    or network access.
+    Source selection is conditional: off Colab an existing local CSV is
+    reused; on Colab the file is always (re)downloaded through the Kaggle
+    API. Authentication is always the ``KAGGLE_API_TOKEN`` -- from Colab
+    Secrets on Colab, from the environment (or ``~/.kaggle/access_token``)
+    locally.
     """
+    ensure_kaggle_credentials()
     DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-    if DATA_FILE.exists() and not force:
+    if DATA_FILE.exists() and not force and not on_colab():
+        # Local cache: reuse it without touching the network.
         df = _read(DATA_FILE)
         print(f"Using existing {DATA_FILE.relative_to(PROJECT_ROOT)} "
               f"({len(df):,} rows)")
@@ -125,23 +131,21 @@ def fetch(force: bool = False) -> pd.DataFrame:
             "required to download it. Install it with: pip install kaggle"
         ) from exc
 
-    # Fail with an actionable message rather than an opaque auth error, which
-    # is the common failure when the project is uploaded without the data file.
-    if not (Path.home() / ".kaggle" / "kaggle.json").exists() and not (
-        os.environ.get("KAGGLE_USERNAME")
-    ):
+    # Fail with an actionable message rather than an opaque auth error.
+    if not has_token():
         raise RuntimeError(
-            f"{DATA_FILE.name} is missing and no Kaggle credentials were found.\n"
-            "Either place the CSV at that path, or set up credentials:\n"
-            "  - download kaggle.json from kaggle.com/settings and save it to\n"
-            "    ~/.kaggle/kaggle.json, or\n"
-            "  - export KAGGLE_USERNAME and KAGGLE_KEY."
+            f"{DATA_FILE.name} is missing and no KAGGLE_API_TOKEN was found.\n"
+            "Get the token at kaggle.com -> Settings -> API -> Create New Token, then:\n"
+            "  - on Colab: add it as a KAGGLE_API_TOKEN Secret (key icon, "
+            "grant this notebook access), or\n"
+            "  - locally: export KAGGLE_API_TOKEN, or save the token to "
+            "~/.kaggle/access_token."
         )
 
     api = KaggleApi()
     api.authenticate()
 
-    print(f"Downloading {KAGGLE_SLUG} from the Kaggle API ...")
+    print(f"Downloading {KAGGLE_SLUG} from the Kaggle API (KAGGLE_API_TOKEN) ...")
     api.dataset_download_files(KAGGLE_SLUG, path=str(DATA_DIR), unzip=True)
 
     if not DATA_FILE.exists():

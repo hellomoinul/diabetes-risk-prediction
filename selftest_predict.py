@@ -1,7 +1,7 @@
 """Self-test for predict.py: proves the saved models load and score new rows.
 
 This is a FUNCTIONAL check, not a performance claim. It scores a slice of the
-known diabetes CSV (labels available), prints ROC-AUC, and asserts the saved
+training CSV (downloaded from Kaggle if missing), prints ROC-AUC, and asserts the saved
 artifact is usable and sensible (AUC > 0.95, recall > 0.85, all 4 models load).
 
 It does NOT reproduce the 0.9799 test-set figure from the report. That number
@@ -33,6 +33,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 import predict as predict_mod  # noqa: E402
 from src.data import MODELS_DIR, TARGET  # noqa: E402
+from src.fetch_data import fetch  # noqa: E402
 
 EXPECTED_MODELS = ["logistic_regression", "decision_tree", "svm", "xgboost"]
 N_ROWS = 5_000
@@ -51,9 +52,8 @@ def check_all_models_load() -> None:
     print("   OK")
 
 
-def score_slice(tmp: Path) -> pd.DataFrame:
+def score_slice(tmp: Path, df: pd.DataFrame) -> pd.DataFrame:
     print(f"\n2. Scoring a {N_ROWS:,}-row slice with xgboost...")
-    df = pd.read_csv(PROJECT_ROOT / "data" / "diabetes_prediction_dataset.csv", nrows=N_ROWS)
     slice_path = tmp / "slice.csv"
     df.to_csv(slice_path, index=False)
     out_path = tmp / "slice_predictions.csv"
@@ -81,9 +81,8 @@ def score_slice(tmp: Path) -> pd.DataFrame:
     return scored
 
 
-def check_map_equivalence(tmp: Path, reference: pd.DataFrame) -> None:
+def check_map_equivalence(tmp: Path, reference: pd.DataFrame, df: pd.DataFrame) -> None:
     print("\n3. Verifying --map gives identical predictions...")
-    df = pd.read_csv(PROJECT_ROOT / "data" / "diabetes_prediction_dataset.csv", nrows=N_ROWS)
     renamed = df.rename(columns={"blood_glucose_level": "glucose"})
     renamed_path = tmp / "renamed.csv"
     renamed.to_csv(renamed_path, index=False)
@@ -107,11 +106,13 @@ def main() -> int:
     print("=" * 78)
     print("SELF-TEST: predict.py on a labeled slice (functional check only)")
     print("=" * 78)
+    print("Loading training data (downloads from Kaggle if missing)...")
+    df_full = fetch().head(N_ROWS)
     check_all_models_load()
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp = Path(tmpdir)
-        reference = score_slice(tmp)
-        check_map_equivalence(tmp, reference)
+        reference = score_slice(tmp, df_full)
+        check_map_equivalence(tmp, reference, df_full)
     print("\nSELF-TEST PASSED")
     return 0
 

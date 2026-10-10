@@ -8,17 +8,18 @@ module generalises that download step::
     csv_path = download_dataset("https://www.kaggle.com/datasets/owner/slug",
                                 dest=Path("/content/newdata"))
 
-Authentication is exactly the same as ``fetch_data`` -- a ``kaggle.json`` in
-``~/.kaggle/`` or the ``KAGGLE_USERNAME`` / ``KAGGLE_KEY`` environment
-variables -- and the failure message is written for a fresh Colab runtime, since
-that is where it will actually be read.
+Authentication is the ``KAGGLE_API_TOKEN`` -- from Colab Secrets on Colab,
+from the environment (or ``~/.kaggle/access_token``) locally -- and the
+failure message is written for a fresh Colab runtime, since that is where
+it will actually be read.
 """
 
 from __future__ import annotations
 
-import os
 import re
 from pathlib import Path
+
+from .kaggle_auth import ensure_kaggle_credentials, has_token
 
 # Accepts https://www.kaggle.com/datasets/<owner>/<slug> with any trailing
 # path (/data, ?select=..., #discussion) stripped.
@@ -52,11 +53,12 @@ def parse_slug(url_or_slug: str) -> str:
 
 def _credential_hint() -> str:
     return (
-        "No Kaggle credentials found. In Colab, run:\n"
-        "  from google.colab import files; files.upload()   # upload kaggle.json\n"
-        "  !mkdir -p ~/.kaggle && mv kaggle.json ~/.kaggle/ && chmod 600 "
-        "~/.kaggle/kaggle.json\n"
-        "or set the KAGGLE_USERNAME and KAGGLE_KEY environment variables."
+        "No Kaggle API token found. Get one at kaggle.com -> Settings -> API "
+        "-> Create New Token, then:\n"
+        "  on Colab: add it as a KAGGLE_API_TOKEN Secret (key icon, grant "
+        "this notebook access);\n"
+        "  locally: export KAGGLE_API_TOKEN, or save it to "
+        "~/.kaggle/access_token."
     )
 
 
@@ -71,6 +73,10 @@ def download_dataset(url_or_slug: str, dest: Path) -> Path:
     dest = Path(dest)
     dest.mkdir(parents=True, exist_ok=True)
 
+    ensure_kaggle_credentials()
+    if not has_token():
+        raise SystemExit(_credential_hint())
+
     try:
         from kaggle.api.kaggle_api_extended import KaggleApi
     except ImportError as exc:
@@ -78,11 +84,6 @@ def download_dataset(url_or_slug: str, dest: Path) -> Path:
             "The kaggle package is required to download a dataset. "
             "Install it with: pip install kaggle"
         ) from exc
-
-    if not (Path.home() / ".kaggle" / "kaggle.json").exists() and not (
-        os.environ.get("KAGGLE_USERNAME")
-    ):
-        raise SystemExit(_credential_hint())
 
     api = KaggleApi()
     api.authenticate()

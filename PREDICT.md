@@ -1,7 +1,8 @@
 # Scoring New Data (Exam Runbook)
 
-Score a surprise CSV with the already-trained diabetes model. No retraining, no
-Kaggle credentials, ~seconds to run.
+Score a surprise CSV with the already-trained diabetes model. No retraining, and
+scoring itself needs no Kaggle token (~seconds to run). (Only downloading the
+training data uses `KAGGLE_API_TOKEN`; the saved models score standalone.)
 
 ## The 30-second version
 

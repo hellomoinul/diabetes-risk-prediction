@@ -9,6 +9,9 @@ figures/
 results/
 results_*/
 
+# Training CSVs are downloaded from Kaggle (KAGGLE_API_TOKEN), never shipped.
+data/*.csv
+
 # Python
 __pycache__/
 *.py[cod]
