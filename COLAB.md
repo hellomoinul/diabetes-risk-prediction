@@ -20,6 +20,16 @@ the exam scripts (`predict.py`, `run_on_new_data.py`, `run_generic_pipeline.py`,
 `selftest_predict.py`), and the docs (`README.md`, `COLAB.md`, `PREDICT.md`, `Plan/`).
 It deliberately excludes `figures/` and `results/`, because the run regenerates both.
 
+**No upload needed:** the same bundle is attached to the GitHub release — pull it in one
+cell and skip step 2 entirely:
+
+```python
+!wget -q https://github.com/hellomoinul/diabetes-risk-prediction/releases/download/v1.0/ML_lab_colab.zip
+!unzip -q ML_lab_colab.zip -d /content
+```
+
+(Rebuilds replace the asset with `--clobber`, so this URL always serves the current bundle.)
+
 ### 2. Open Colab and upload it
 
 Go to [colab.research.google.com](https://colab.research.google.com), then:

@@ -410,6 +410,13 @@ For an **exam dataset** (CSV or Kaggle link) the same clone works:
 !unzip -q ML_lab_colab.zip -d /content
 ```
 
+**Fastest (release download):** no clone, no upload — pull the versioned bundle directly:
+
+```python
+!wget -q https://github.com/hellomoinul/diabetes-risk-prediction/releases/download/v1.0/ML_lab_colab.zip
+!unzip -q ML_lab_colab.zip -d /content
+```
+
 Full steps in [`COLAB.md`](COLAB.md). No Kaggle credentials are required, because the repo/archive
 includes `data/diabetes_prediction_dataset.csv` and `fetch()` only contacts the Kaggle API when
 that file is absent.
