@@ -366,7 +366,8 @@ figures/                            # 16 PNG figures
 results/                            # 12 result files, incl. final_result_table.csv
 models/                             # tuned pipelines (*.joblib) — TRACKED, ships with the project
 Plan/                               # project_plan.md (record), implementation_report.md,
-                                    # preparation.md, original_proposal_superseded.md (history only)
+                                    # preparation.md, paper_comparison.md (external-paper rerun),
+                                    # original_proposal_superseded.md (history only)
 ```
 
 ## Reproducing
